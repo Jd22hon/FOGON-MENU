@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOGŌN Food N Grill | Menú Interactivo</title>
+    <style>
+        :root {
+            --orange-fire: #ff5500;
+            --orange-glow: rgba(255, 85, 0, 0.85);
+            --green-fogon: #0d3b2e;
+            --green-accent: #1e6b52;
+            --gold-accent: #e6a100;
+            --cream-bg: #111111;
+            --card-bg: #1c1c1c;
+            --text-light: #ffffff;
+            --text-gray: #b0b0b0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { background-color: var(--cream-bg); color: var(--text-light); padding-bottom: 90px; }
+
+        /* PORTADA A PANTALLA COMPLETA CON TU FOTO REAL */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            overflow: hidden;
+            background: url('https://i.postimg.cc/3wwvg4kM/fondo-jpg.png') center/cover no-repeat;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .neon-title-black {
+            font-size: 5.5rem;
+            font-weight: 900;
+            letter-spacing: 8px;
+            color: #050505;
+            text-transform: uppercase;
+            text-shadow: 
+                0 0 10px #ff5500,
+                0 0 25px #ff5500,
+                0 0 50px rgba(255, 85, 0, 0.8),
+                0 0 80px rgba(255, 85, 0, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        .btn-hero {
+            padding: 16px 32px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-decoration: none;
+            display: inline-block;
+            margin: 8px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-hero:hover { transform: scale(1.05); }
+        .btn-primary { background: var(--orange-fire); color: white; box-shadow: 0 4px 20px var(--orange-glow); }
+        .btn-outline { background: rgba(0,0,0,0.7); color: white; border: 2px solid var(--orange-fire); }
+
+        /* CONTENEDOR GENERAL DEL MENÚ */
+        .container { max-width: 900px; margin: 0 auto; padding: 20px 15px; }
+        
+        #menu-wrapper {
+            display: none;
+            padding-top: 30px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* PESTAÑAS DE NAVEGACIÓN */
+        .categories-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: rgba(17, 17, 17, 0.95);
+            padding: 12px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid #333;
+        }
+
+        .cat-tab {
+            background: #222;
+            color: #ccc;
+            border: 1px solid #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .cat-tab.active, .cat-tab:hover {
+            background: var(--green-accent);
+            color: white;
+            border-color: var(--orange-fire);
+            box-shadow: 0 0 10px rgba(30, 107, 82, 0.5);
+        }
+
+        .category-title {
+            color: var(--gold-accent);
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--green-accent);
+            padding-bottom: 8px;
+            margin: 30px 0 15px;
+            letter-spacing: 2px;
+        }
+
+        /* TARJETAS DE PLATOS */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .menu-card {
+            background: var(--card-bg);
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .menu-card:hover { border-color: var(--orange-fire); transform: translateY(-3px); }
+
+        .menu-card.sold-out { opacity: 0.5; background: #151515; }
+
+        .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .item-name { font-size: 1.1rem; font-weight: bold; color: #fff; }
+        .item-price { font-size: 1.1rem; font-weight: bold; color: var(--gold-accent); }
+        .item-desc { font-size: 0.85rem; color: var(--text-gray); margin-bottom: 15px; line-height: 1.4; }
+
+        .badge-sold { background: #c0392b; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
+
+        .btn-add {
+            background: var(--green-accent);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .btn-add:hover { background: var(--orange-fire); }
+        .btn-add:disabled { background: #444; cursor: not-allowed; }
+
+        /* CARRITO FLOTANTE */
+        .cart-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(20, 20, 20, 0.95);
+            border-top: 2px solid var(--orange-fire);
+            padding: 15px 25px;
+            display: none; justify-content: space-between; align-items: center;
+            z-index: 1000; backdrop-filter: blur(10px);
+        }
+        .btn-whatsapp { background: #25d366; color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+
+        /* VENTANAS MODALES */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 15px;
+        }
+        .modal-box {
+            background: #1e1e1e; color: white; border-radius: 14px; padding: 25px; width: 100%; max-width: 450px;
+            border: 1px solid #333;
+        }
+        .modal-box input, .modal-box select, .modal-box textarea {
+            width: 100%; padding: 10px; margin: 8px 0 15px; background: #2a2a2a; border: 1px solid #444; color: white; border-radius: 8px;
+        }
+        .btn-close { background: #444; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <!-- PORTADA / HERO -->
+    <section class="hero" id="hero-section">
+        <div class="hero-content">
+            <h1 class="neon-title-black">FOGON</h1>
+            <p class="hero-subtitle">FOOD N GRILL • ASADOS Y MARISCOS EN SALINAS</p>
+            <div>
+                <button class="btn-hero btn-primary" onclick="abrirMenu()">🔥 Ver Menú Interactivo</button>
+                <a href="#contacto" class="btn-hero btn-outline" onclick="abrirMenu()">📍 Ubicación & Horarios</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTENEDOR DEL MENÚ -->
+    <div id="menu-wrapper" class="container">
+        
+        <!-- PESTAÑAS DE FILTRO -->
+        <div class="categories-nav">
+            <button class="cat-tab active" onclick="filtrarMenu('todos')">Todos</button>
+            <button class="cat-tab" onclick="filtrarMenu('entradas')">Entradas</button>
+            <button class="cat-tab" onclick="filtrarMenu('especiales')">Especiales</button>
+            <button class="cat-tab" onclick="filtrarMenu('cortes')">Cortes & Res</button>
+            <button class="cat-tab" onclick="filtrarMenu('fuertes')">Platos Fuertes</button>
+            <button class="cat-tab" onclick="filtrarMenu('mariscos')">Mariscos</button>
+            <button class="cat-tab" onclick="filtrarMenu('ninos')">Niños</button>
+            <button class="cat-tab" onclick="filtrarMenu('bebidas')">Bebidas & Bar</button>
+        </div>
+
+        <div id="menu-content"></div>
+
+        <!-- SECCIÓN CONTACTO -->
+        <section id="contacto" style="background: #1c1c1c; border-radius: 14px; padding: 25px; margin: 40px 0; border: 1px solid #333;">
+            <h3 style="color: var(--gold-accent); margin-bottom: 12px;">Información & Contacto</h3>
+            <p style="color: var(--text-gray); font-size: 0.95rem; margin-bottom: 6px;"><strong>Ubicación:</strong> Salinas, Ecuador</p>
+            <p style="color: var(--text-gray); font-size: 0.95rem; margin-bottom: 6px;"><strong>WhatsApp:</strong> +593 99 219 1545</p>
+            <p style="color: var(--text-gray); font-size: 0.95rem;"><strong>Instagram:</strong> <a href="https://www.instagram.com/fogon.ec/" target="_blank" style="color: var(--orange-fire); text-decoration: none;">@fogon.ec ↗</a></p>
+        </section>
+    </div>
+
+    <!-- BARRA FLOTANTE DE PEDIDO -->
+    <div class="cart-bar" id="cart-bar">
+        <div style="font-size: 1.05rem; font-weight: bold;">
+            <span id="cart-count" style="color: var(--gold-accent);">0</span> ítems | Total: $<span id="cart-total" style="color: var(--gold-accent);">0.00</span>
+        </div>
+        <button class="btn-whatsapp" onclick="abrirCheckout()">💬 Finalizar Pedido WhatsApp</button>
+    </div>
+
+    <!-- MODAL PERSONALIZACIÓN (GUARNICIONES) -->
+    <div class="modal" id="modal-options">
+        <div class="modal-box">
+            <h3 id="mod-title" style="color: var(--gold-accent); margin-bottom: 6px;">Personalizar plato</h3>
+            <p id="mod-desc" style="font-size: 0.85rem; color: #aaa; margin-bottom: 15px;"></p>
+            
+            <div id="side-select-group">
+                <label style="font-size: 0.9rem; font-weight: bold;">Elige tu Guarnición Acompañante:</label>
+                <select id="mod-side">
+                    <option value="Moro Fogón">Moro Fogón</option>
+                    <option value="Moro Choclo">Moro Choclo</option>
+                    <option value="Tacu Tacu">Tacu Tacu</option>
+                    <option value="Moro Clásico">Moro Clásico</option>
+                    <option value="Papa Gratinada">Papa Gratinada</option>
+                    <option value="Ensalada y Papas Fritas">Ensalada y Papas Fritas</option>
+                </select>
+            </div>
+
+            <label style="font-size: 0.9rem; font-weight: bold; display: block; margin-top: 10px;">Nota o término (ej. término medio, sin cebolla):</label>
+            <input type="text" id="mod-note" placeholder="Ej: Término medio">
+
+            <button class="btn-hero btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;" onclick="agregarAlCarritoConfirmado()">Agregar al Carrito</button>
+            <button class="btn-close" onclick="cerrarModal('modal-options')">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- MODAL CHECKOUT CLIENTE -->
+    <div class="modal" id="modal-checkout">
+        <div class="modal-box">
+            <h3 style="color: var(--gold-accent); margin-bottom: 15px;">🔥 Confirmar Pedido - FOGŌN</h3>
+            
+            <label style="font-size: 0.9rem;">Tu Nombre:</label>
+            <input type="text" id="cli-name" placeholder="Ej. Carlos Mendoza">
+
+            <label style="font-size: 0.9rem;">Tipo de Servicio:</label>
+            <select id="cli-type">
+                <option value="Para Comer en el Local">Para Comer en el Local</option>
+                <option value="Para Llevar (Retiro)">Para Llevar (Retiro)</option>
+                <option value="A Domicilio">A Domicilio</option>
+            </select>
+
+            <label style="font-size: 0.9rem;">Instrucción extra (Opcional):</label>
+            <textarea id="cli-obs" rows="2" placeholder="Dirección de entrega o detalles..."></textarea>
+
+            <div id="cli-summary" style="background: #151515; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; max-height: 120px; overflow-y: auto;"></div>
+
+            <button class="btn-whatsapp" style="width: 100%; text-align: center; padding: 14px;" onclick="enviarPedidoWhatsApp()">🚀 Enviar Pedido a WhatsApp</button>
+            <button class="btn-close" onclick="cerrarModal('modal-checkout')">Seguir viendo</button>
+        </div>
+    </div>
+    <script>
+        // BASE DE DATOS OFICIAL SEGÚN PDF DE FOGÓN CON CONTROL DE AGOTADOS (agotado: true/false)
+        const dbMenu = [
+            // ENTRADAS
+            { id: 1, cat: "entradas", name: "Papas Fogón", desc: "Papas salteadas en mantequilla y ajo, acompañadas de tocino.", price: 5.99, sides: false, agotado: false },
+            { id: 2, cat: "entradas", name: "Patacones con Queso", desc: "Porción de patacones crujientes con queso rallado.", price: 5.99, sides: false, agotado: false },
+            { id: 3, cat: "entradas", name: "Chorizo Parrillero", desc: "3 chorizos parrilleros al grill con chimichurri y ensalada.", price: 4.03, sides: false, agotado: false },
+
+            // ESPECIALES
+            { id: 4, cat: "especiales", name: "Lomo fino con papa gratinada", desc: "Lomo al grill con papa cocinada en crema bechamel y mozzarella.", price: 17.33, sides: false, agotado: false },
+            { id: 5, cat: "especiales", name: "Lomo fino a la pimienta con arroz al pesto", desc: "Bañado en salsa de pimienta, con arroz al pesto y papas fritas.", price: 17.33, sides: false, agotado: false },
+            { id: 6, cat: "especiales", name: "Lasaña de carne", desc: "Pasta rellena de carne, mozzarella y crema bechamel.", price: 9.20, sides: false, agotado: false },
+
+            // CORTES & RES PREMIUM
+            { id: 7, cat: "cortes", name: "Picaña 350 GR", desc: "Corte jugoso y tierno asado a la parrilla.", price: 21.85, sides: true, agotado: false },
+            { id: 8, cat: "cortes", name: "Bife de Chorizo 350 GR", desc: "Clásico corte argentino de gran sabor.", price: 21.85, sides: true, agotado: false },
+            { id: 9, cat: "cortes", name: "Ribeye 350 GR", desc: "Excepcional marmoleo y jugosidad al grill.", price: 19.55, sides: true, agotado: false },
+            { id: 10, cat: "cortes", name: "T-Bone 350 GR", desc: "Lo mejor del lomo y el bife en un solo corte.", price: 19.55, sides: true, agotado: false },
+            { id: 11, cat: "cortes", name: "Matambre de Cerdo 350 GR", desc: "Cerdo premium asado al carbón.", price: 14.66, sides: false, agotado: false },
+            { id: 12, cat: "cortes", name: "Costillas Ahumadas BBQ (1 lb)", desc: "1 libra de costillas ahumadas al grill en salsa BBQ.", price: 17.50, sides: true, agotado: false },
+
+            // PLATOS FUERTES
+            { id: 13, cat: "fuertes", name: "Lomo Fino de Res", desc: "Tierno lomo de res con opción de guarnición.", price: 15.93, sides: true, agotado: false },
+            { id: 14, cat: "fuertes", name: "Costilla de Cerdo", desc: "Costilla tierna asada a las brasas.", price: 12.07, sides: true, agotado: false },
+            { id: 15, cat: "fuertes", name: "Pollo de Grill", desc: "Pechuga marinada y asada al carbón.", price: 10.93, sides: true, agotado: false },
+            { id: 16, cat: "fuertes", name: "Chuleta de Cerdo", desc: "Jugosa chuleta a la parrilla.", price: 12.07, sides: true, agotado: false },
+
+            // MARISCOS
+            { id: 17, cat: "mariscos", name: "Majarisco", desc: "Mariscos con verde majado y toque Fogón.", price: 17.33, sides: false, agotado: false },
+            { id: 18, cat: "mariscos", name: "Sudado de Mariscos", desc: "Guiso tradicional al vapor con jugos marinos.", price: 17.33, sides: false, agotado: false },
+            { id: 19, cat: "mariscos", name: "Arroz Marinero", desc: "Arroz mezclado con variedad de mariscos frescos.", price: 15.53, sides: false, agotado: false },
+            { id: 20, cat: "mariscos", name: "Arroz con Cangrejo", desc: "Arroz salteado con exquisita carne de cangrejo.", price: 14.95, sides: false, agotado: false },
+            { id: 21, cat: "mariscos", name: "Arroz con Camarón", desc: "Arroz sabroso con camarones seleccionados.", price: 14.95, sides: false, agotado: false },
+
+            // MENÚ DE NIÑOS
+            { id: 22, cat: "ninos", name: "Nuggets de pollo", desc: "Pollo apanado sobre lechuga con papas fritas.", price: 5.99, sides: false, agotado: false },
+            { id: 23, cat: "ninos", name: "Papas fritas con chorizo", desc: "Chorizo a la parrilla con crujientes papas fritas.", price: 5.99, sides: false, agotado: false },
+
+            // BEBIDAS & BAR
+            { id: 24, cat: "bebidas", name: "Limonada Imperial", desc: "Bebida cítrica refrescante de la casa.", price: 3.45, sides: false, agotado: false },
+            { id: 25, cat: "bebidas", name: "Jarra de Jugo de Naranja", desc: "Jugo natural exprimido.", price: 8.05, sides: false, agotado: false },
+            { id: 26, cat: "bebidas", name: "Cerveza Club Verde / Corona / Heineken", desc: "Cerveza helada nacional o importada.", price: 3.99, sides: false, agotado: false },
+            { id: 27, cat: "bebidas", name: "Mojito / Margarita / Piña Colada", desc: "Coctelería tropical de la barra.", price: 7.99, sides: false, agotado: false },
+            { id: 28, cat: "bebidas", name: "Copa de Sangría", desc: "Sangría de la casa.", price: 5.18, sides: false, agotado: false }
+        ];
+
+        let carrito = [];
+        let itemTemporal = null;
+
+        function abrirMenu() {
+            document.getElementById('menu-wrapper').style.display = 'block';
+            document.getElementById('menu-wrapper').scrollIntoView({ behavior: 'smooth' });
+            renderizarMenu('todos');
+        }
+
+        function filtrarMenu(categoria) {
+            document.querySelectorAll('.cat-tab').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderizarMenu(categoria);
+        }
+
+        function renderizarMenu(catFiltro) {
+            const container = document.getElementById('menu-content');
+            container.innerHTML = '';
+
+            const categoriasAMostrar = catFiltro === 'todos' ? ['entradas', 'especiales', 'cortes', 'fuertes', 'mariscos', 'ninos', 'bebidas'] : [catFiltro];
+            
+            const nombresCat = {
+                entradas: 'Entradas',
+                especiales: 'Especiales del Chef',
+                cortes: 'Cortes & Res Premium',
+                fuertes: 'Platos Fuertes',
+                mariscos: 'Mariscos',
+                ninos: 'Menú de Niños',
+                bebidas: 'Bebidas & Bar'
+            };
+
+            categoriasAMostrar.forEach(cat => {
+                const items = dbMenu.filter(i => i.cat === cat);
+                if (items.length === 0) return;
+
+                let html = `<h2 class="category-title">${nombresCat[cat]}</h2><div class="menu-grid">`;
+                
+                items.forEach(item => {
+                    html += `
+                        <div class="menu-card ${item.agotado ? 'sold-out' : ''}">
+                            <div>
+                                <div class="item-header">
+                                    <span class="item-name">${item.name} ${item.agotado ? '<span class="badge-sold">AGOTADO</span>' : ''}</span>
+                                    <span class="item-price">$${item.price.toFixed(2)}</span>
+                                </div>
+                                <p class="item-desc">${item.desc}</p>
+                            </div>
+                            <button class="btn-add" ${item.agotado ? 'disabled' : ''} onclick="pedirItem(${item.id})">
+                                ${item.agotado ? 'Agotado' : '+ Agregar'}
+                            </button>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function pedirItem(id) {
+            const item = dbMenu.find(i => i.id === id);
+            if (!item || item.agotado) return;
+
+            itemTemporal = { ...item, side: '', note: '' };
+
+            if (item.sides) {
+                document.getElementById('mod-title').innerText = item.name;
+                document.getElementById('mod-desc').innerText = item.desc;
+                document.getElementById('side-select-group').style.display = 'block';
+                document.getElementById('modal-options').style.display = 'flex';
+            } else {
+                document.getElementById('mod-title').innerText = item.name;
+                document.getElementById('mod-desc').innerText = item.desc;
+                document.getElementById('side-select-group').style.display = 'none';
+                document.getElementById('modal-options').style.display = 'flex';
+            }
+        }
+
+        function agregarAlCarritoConfirmado() {
+            if (itemTemporal.sides) {
+                itemTemporal.side = document.getElementById('mod-side').value;
+            }
+            itemTemporal.note = document.getElementById('mod-note').value.trim();
+
+            carrito.push(itemTemporal);
+            cerrarModal('modal-options');
+            document.getElementById('mod-note').value = '';
+            actualizarBarraCarrito();
+        }
+
+        function actualizarBarraCarrito() {
+            const bar = document.getElementById('cart-bar');
+            if (carrito.length > 0) {
+                bar.style.display = 'flex';
+                document.getElementById('cart-count').innerText = carrito.length;
+                const total = carrito.reduce((sum, i) => sum + i.price, 0);
+                document.getElementById('cart-total').innerText = total.toFixed(2);
+            } else {
+                bar.style.display = 'none';
+            }
+        }
+
+        function abrirCheckout() {
+            const summary = document.getElementById('cli-summary');
+            summary.innerHTML = '<strong>Platos seleccionados:</strong><br>';
+            carrito.forEach((i, idx) => {
+                summary.innerHTML += `
+                    <div style="margin-top: 4px;">
+                        ${idx + 1}. ${i.name} - $${i.price.toFixed(2)}
+                        ${i.side ? `<br><small style="color:var(--gold-accent);">   └ Guarnición: ${i.side}</small>` : ''}
+                        ${i.note ? `<br><small style="color:#aaa;">   └ Nota: ${i.note}</small>` : ''}
+                    </div>
+                `;
+            });
+            document.getElementById('modal-checkout').style.display = 'flex';
+        }
+
+        function cerrarModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function enviarPedidoWhatsApp() {
+            const nombre = document.getElementById('cli-name').value.trim();
+            const tipo = document.getElementById('cli-type').value;
+            const obs = document.getElementById('cli-obs').value.trim();
+
+            if (!nombre) {
+                alert('Por favor ingresa tu nombre para el pedido.');
+                return;
+            }
+
+            let msg = `🔥 *NUEVO PEDIDO - FOGÓN* 🔥%0A%0A`;
+            msg += `👤 *Cliente:* ${nombre}%0A`;
+            msg += `🛵 *Servicio:* ${tipo}%0A`;
+            if (obs) msg += `📝 *Nota:* ${obs}%0A`;
+            msg += `%0A*DETALLE DE ORDEN:*%0A`;
+
+            carrito.forEach((i, idx) => {
+                msg += `${idx + 1}. *${i.name}* ($${i.price.toFixed(2)})%0A`;
+                if (i.side) msg += `   └ Guarnición: ${i.side}%0A`;
+                if (i.note) msg += `   └ Nota: ${i.note}%0A`;
+            });
+
+            const total = carrito.reduce((sum, i) => sum + i.price, 0);
+            msg += `%0A💰 *TOTAL A PAGAR: $${total.toFixed(2)}*`;
+
+            window.open(`https://wa.me/593992191545?text=${msg}`, '_blank');
+        }
+    </script>
+</body>
+</html>
